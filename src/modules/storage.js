@@ -1,3 +1,6 @@
+import Library from "./library";
+import Book from "./book";
+
 export default class Storage {
   static saveLibrary(data) {
     localStorage.setItem("Library", JSON.stringify(data));

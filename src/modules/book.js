@@ -28,5 +28,6 @@ export default class Book {
   }
   setRead() {
     this.read === true ? (this.read = false) : (this.read = true);
+    return this.read
   }
 }

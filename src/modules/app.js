@@ -1,8 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import Book from "./book";
-import Library from "./library";
-import Storage from "./storage";
+import { library, Storage } from "./backend.js";
 
 function Header() {
   return (
@@ -16,14 +15,14 @@ function Header() {
 }
 
 function Overlay({ setAddBookClicked }) {
-  const [formValues, setFormValues] = useState({
+  const defaultFormValues = {
     title: "",
     author: "",
     pages: "",
     isRead: false,
-    error: null,
-  });
-  const [isError, setIsError] = useState(false);
+  };
+  const [formValues, setFormValues] = useState(defaultFormValues);
+  const [error, setError] = useState(null);
 
   const formClickHandler = (e) => {
     e.stopPropagation();
@@ -36,20 +35,31 @@ function Overlay({ setAddBookClicked }) {
   const submintHandler = (e) => {
     e.preventDefault();
     if (!formValues.title || !formValues.author || !formValues.pages) {
-      setIsError(true);
+      setError("Please fill all of the text fields");
       setTimeout(() => {
-        setIsError(false);
+        setError(null);
       }, 2000);
       return;
     }
-
-    console.log("Submit");
+    const { title, author, pages, isRead } = formValues;
+    if (library.contains(title)) {
+      setError("This book is already exists!");
+      setTimeout(() => {
+        setError(null);
+      }, 2000);
+      setTimeout(() => {
+        setFormValues(defaultFormValues);
+      }, 2000);
+      return;
+    }
+    library.addBook(new Book(title, author, pages, isRead));
+    Storage.saveLibrary(library);
+    console.log(library);
     setAddBookClicked(false);
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log(name, value, type, checked);
     const newVal = type === "checkbox" ? checked : value;
     setFormValues((prevVal) => ({ ...prevVal, [name]: newVal }));
   };
@@ -59,9 +69,9 @@ function Overlay({ setAddBookClicked }) {
       <form id="addBookForm" onClick={formClickHandler}>
         <div className="book add-book-menu">
           <h3>Add new book</h3>
-          {isError && (
+          {error && (
             <div className="error" style={{ color: "red" }}>
-              Please fill in all text fields
+              {error}
             </div>
           )}
           <div className="book-info">
@@ -126,10 +136,25 @@ function Overlay({ setAddBookClicked }) {
 
 function Main() {
   const [addBookClicked, setAddBookClicked] = useState(false);
+  const [books, setBooks] = useState(library.books);
 
   const addBookClickHandle = () => {
     setAddBookClicked(true);
   };
+
+  const AllBooks = books.map((book, index) => {
+    const { title, author, pages, read } = book;
+    return (
+      <BookItem
+        key={index}
+        name={title}
+        author={author}
+        pages={pages}
+        read={read}
+        setBooks={setBooks}
+      />
+    );
+  });
 
   return (
     <div className="main-container">
@@ -138,14 +163,8 @@ function Main() {
           + Add book
         </button>
       </div>
-      <div className="main">
-        <BookItem />
-        <BookItem />
-        <BookItem />
-      </div>
-      {addBookClicked ? (
-        <Overlay setAddBookClicked={setAddBookClicked} />
-      ) : null}
+      <div className="main">{AllBooks}</div>
+      {addBookClicked && <Overlay setAddBookClicked={setAddBookClicked} />}
     </div>
   );
 }
@@ -158,30 +177,49 @@ function Footer() {
   );
 }
 
-function BookButtonRemove() {
-  return <button className="book-button remove">Remove</button>;
-}
-
-function BookButtonIsRead({ isRead }) {
-  const [text, setText] = useState(() => (isRead ? "Read" : "Not read"));
+function BookButtonRemove({ setBooks, title }) {
+  const removeHandler = () => {
+    library.deleteBook(title);
+    setBooks(library.books);
+    Storage.saveLibrary(library);
+  };
 
   return (
-    <button className={`book-button read ${isRead ? "red" : "green"}`}>
-      {text}
+    <button className="book-button remove" onClick={removeHandler}>
+      Remove
     </button>
   );
 }
 
-function BookItem({ name, author, pages, read }) {
+function BookButtonIsRead({ isRead, title }) {
+  const [readed, setReaded] = useState(isRead);
+
+  const isReadHandler = () => {
+    const book = library.getBook(title);
+    setReaded(book.setRead())
+    Storage.saveLibrary(library)
+  };
+
+  return (
+    <button
+      onClick={isReadHandler}
+      className={`book-button read ${readed ? "green" : "red"}`}
+    >
+      {readed ? "Read" : "Not read"}
+    </button>
+  );
+}
+
+function BookItem({ name, author, pages, read, setBooks }) {
   return (
     <div className="book">
       <div className="book-info">
-        <p className="book-name"> "Well Behaved Wives" </p>
-        <p className="book-author">Amy Sue Nathan</p>
-        <p className="book-pages">319 pages</p>
+        <p className="book-name"> {`"${name}"`} </p>
+        <p className="book-author"> {author}</p>
+        <p className="book-pages">{pages} pages</p>
       </div>
-      <BookButtonIsRead isRead={false} />
-      <BookButtonRemove />
+      <BookButtonIsRead isRead={read} title={name} />
+      <BookButtonRemove setBooks={setBooks} title={name} />
     </div>
   );
 }
