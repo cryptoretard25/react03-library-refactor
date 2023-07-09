@@ -46,8 +46,6 @@ function Overlay({ setAddBookClicked }) {
       setError("This book is already exists!");
       setTimeout(() => {
         setError(null);
-      }, 2000);
-      setTimeout(() => {
         setFormValues(defaultFormValues);
       }, 2000);
       return;
