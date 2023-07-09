@@ -1,12 +1,15 @@
 {
   "name": "03-react-library-refactor",
+  "homepage": "https://cryptoretard25.github.io/react03-library-refactor",
   "version": "1.0.0",
   "description": "List of the books:",
   "main": "script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "webpack --watch",
-    "build": "webpack"
+    "build": "webpack",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "repository": {
     "type": "git",
@@ -17,7 +20,6 @@
   "bugs": {
     "url": "https://github.com/cryptoretard25/react03-library-refactor/issues"
   },
-  "homepage": "https://github.com/cryptoretard25/react03-library-refactor#readme",
   "dependencies": {
     "@babel/preset-env": "^7.22.7",
     "babel-install": "^2.1.0",
@@ -31,6 +33,7 @@
     "@babel/core": "^7.22.8",
     "@babel/preset-react": "^7.22.5",
     "css-loader": "^6.8.1",
+    "gh-pages": "^5.0.0",
     "html-webpack-plugin": "^5.5.3",
     "mini-css-extract-plugin": "^2.7.6"
   }
