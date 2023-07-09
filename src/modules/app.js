@@ -29,7 +29,7 @@ function Overlay({ setAddBookClicked }) {
   };
 
   const overlayClickHandle = (e) => {
-    if ((e.target.className = "overlay")) setAddBookClicked(false);
+    if ((e.target.className === "overlay")) setAddBookClicked(false);
   };
 
   const submintHandler = (e) => {
